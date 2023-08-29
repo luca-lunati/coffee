@@ -114,8 +114,11 @@ actor Asset_Management {
 
       if (request.method == "GET") {
         Debug.print("incoming GET request");
-        let split : Iter.Iter<Text> = Text.split(request.url, #char '?');
-        let key : Text = Iter.toArray(split)[0]; //e.g. "/assets/fileName"
+        // let split : Iter.Iter<Text> = Text.split(request.url, #char '?');
+        // let key : Text = Iter.toArray(split)[0]; //e.g. "/assets/fileName"
+
+        let split : Iter.Iter<Text> = Text.split(request.url, #text ".io");
+        let key : Text = Iter.toArray(split)[1]; //e.g. "/assets/fileName"
 
         // asset hashmap lookup
         let asset : ?Types.Asset = assets.get(key);

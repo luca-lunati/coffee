@@ -693,14 +693,16 @@ class SupplyChain extends React.Component {
         const embed = document.createElement('embed');
         embed.width = 600;
         embed.height = 400;
-        embed.src = `http://localhost:4943${url}?canisterId=${canisterId}`;
+        embed.src = `http://${canisterId}.icp0.io${url}`;
+       // embed.src = `http://localhost:4943${url}?canisterId=${canisterId}`;
         fragment.appendChild(embed);
       } else {
         // Handle image files
         const img = document.createElement('img');
         img.width = 300;
         img.height = 200;
-        img.src = `http://localhost:4943${url}?canisterId=${canisterId}`;
+        embed.src = `http://${canisterId}.icp0.io${url}`;
+        //img.src = `http://localhost:4943${url}?canisterId=${canisterId}`;
         fragment.appendChild(img);
       }
     });

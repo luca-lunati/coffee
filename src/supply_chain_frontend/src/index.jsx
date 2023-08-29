@@ -21,9 +21,9 @@ class SupplyChain extends React.Component {
       wasm: null,
       agent: null,
       //Live version 
-      //assets_canisterid: "kwgtv-yiaaa-aaaak-ae5cq-cai",
+      assets_canisterid: "kwgtv-yiaaa-aaaak-ae5cq-cai",
       //Local version
-      assets_canisterid: "bkyz2-fmaaa-aaaaa-qaaaq-cai",
+      //assets_canisterid: "bkyz2-fmaaa-aaaaa-qaaaq-cai",
       drafts: [{ id: '', title: '' }],
       currentDraft: {
         id: 0,
@@ -693,7 +693,7 @@ class SupplyChain extends React.Component {
         const embed = document.createElement('embed');
         embed.width = 600;
         embed.height = 400;
-        embed.src = `http://${canisterId}.icp0.io${url}`;
+        embed.src = `http://${canisterId}.raw.icp0.io?${url}`;
        // embed.src = `http://localhost:4943${url}?canisterId=${canisterId}`;
         fragment.appendChild(embed);
       } else {
@@ -701,7 +701,7 @@ class SupplyChain extends React.Component {
         const img = document.createElement('img');
         img.width = 300;
         img.height = 200;
-        embed.src = `http://${canisterId}.icp0.io${url}`;
+        img.src = `http://${canisterId}.raw.icp0.io?${url}`;
         //img.src = `http://localhost:4943${url}?canisterId=${canisterId}`;
         fragment.appendChild(img);
       }

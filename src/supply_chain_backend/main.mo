@@ -30,9 +30,9 @@ actor Main {
   stable var assetCanisterIds = List.nil<Principal>();
   // adding current asset canister id to list
   //Live version
-  //assetCanisterIds := List.push<Principal>(Principal.fromText("kwgtv-yiaaa-aaaak-ae5cq-cai"), assetCanisterIds);
+  assetCanisterIds := List.push<Principal>(Principal.fromText("kwgtv-yiaaa-aaaak-ae5cq-cai"), assetCanisterIds);
   //Local Version
-  assetCanisterIds := List.push<Principal>(Principal.fromText("bkyz2-fmaaa-aaaaa-qaaaq-cai"), assetCanisterIds);
+  //assetCanisterIds := List.push<Principal>(Principal.fromText("bkyz2-fmaaa-aaaaa-qaaaq-cai"), assetCanisterIds);
 
   //Learning: Cant return non-shared classes (aka mutable classes). Save mutable data to this actor instead of node?
   var allNodes = List.nil<Types.Node>(); // make stable
@@ -513,6 +513,7 @@ actor Main {
       };
     };
   };
+
 
   public query func get_suppliers() : async [Text] {
     Iter.toArray(suppliers.vals());

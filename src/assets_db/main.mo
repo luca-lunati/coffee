@@ -16,7 +16,6 @@ import Time "mo:base/Time";
 import Error "mo:base/Error";
 
 actor Asset_Management {
-  
 
   public query func greet() : async () {
     Debug.print("Hello from Assets Canister with id " # Principal.toText(Principal.fromActor(Asset_Management)));
@@ -48,7 +47,7 @@ actor Asset_Management {
 
   // puts the given chunk in the chunks hashmap together with the created chunkID. It then returns the chunkID as a record for frontend
   public func create_chunk(chunk : Types.Chunk) : async { chunk_id : Nat } {
- 
+
     nextChunkID := nextChunkID + 1;
     chunks.put(nextChunkID, chunk);
 
@@ -100,116 +99,131 @@ actor Asset_Management {
 
     };
 
-  // remove chunks from chunks mapping. All the necessery informations is inside the assets mapping
+    // remove chunks from chunks mapping. All the necessery informations is inside the assets mapping
     for (chunk_id in chunk_ids.vals()) {
       chunks.delete(chunk_id);
     };
 
-
   };
 
-    public query func http_request(
-      request : Types.HttpRequest
-    ) : async Types.HttpResponse {
+  public query func http_request(
+    request : Types.HttpRequest
+  ) : async Types.HttpResponse {
 
-      if (request.method == "GET") {
-        Debug.print("incoming GET request");
-        // let split : Iter.Iter<Text> = Text.split(request.url, #char '?');
-        // let key : Text = Iter.toArray(split)[0]; //e.g. "/assets/fileName"
+    var text : Text = "Permission denied. Could not perform this operation ";
 
-        let split : Iter.Iter<Text> = Text.split(request.url, #text ".io");
-        let key : Text = Iter.toArray(split)[1]; //e.g. "/assets/fileName"
+    if (request.method == "GET") {
+      Debug.print("incoming GET request");
+      let split : Iter.Iter<Text> = Text.split(request.url, #char '?');
 
-        // asset hashmap lookup
-        let asset : ?Types.Asset = assets.get(key);
+      // let key : Text = Iter.toArray(split)[0]; //e.g. "/assets/fileName"
+      let key : Text = Iter.toArray(split)[1]; //e.g. "/assets/fileName"
 
-        switch (asset) {
-          case (?{ content_type : Text; encoding : Types.AssetEncoding }) {
-            return {
-              body = encoding.content_chunks[0];
-              headers = [
-                ("Content-Type", content_type),
-                ("accept-ranges", "bytes"),
-                ("cache-control", "private, max-age=0"),
-              ];
-              status_code = 200;
-              streaming_strategy = create_strategy(
-                key,
-                0,
-                { content_type; encoding },
-                encoding,
-              );
-            };
-          };
-          case null {};
-        };
-      };
+      text := "Permission denied. Could not perform this operation. index 1: " #key # ", index 0 " #Iter.toArray(split)[0] # "size of assets " #Nat.toText(assets.size());
 
-      return {
-        body = Blob.toArray(Text.encodeUtf8("Permission denied. Could not perform this operation"));
-        headers = [];
-        status_code = 403;
-        streaming_strategy = null;
-      };
-    };
+      // asset hashmap lookup
+      let asset : ?Types.Asset = assets.get(key);
 
-    private func create_strategy(
-      key : Text,
-      index : Nat,
-      asset : Types.Asset,
-      encoding : Types.AssetEncoding,
-    ) : ?Types.StreamingStrategy {
-      switch (create_token(key, index, encoding)) {
-        case (null) { null };
-        case (?token) {
-          let self : Principal = Principal.fromActor(Asset_Management);
-          let canisterId : Text = Principal.toText(self);
-          let canister = actor (canisterId) : actor {
-            http_request_streaming_callback : shared () -> async ();
-          }; // create actor reference
-
-          return ?#Callback({
-            token;
-            callback = canister.http_request_streaming_callback;
-
-          });
-        };
-      };
-    };
-
-    public query func http_request_streaming_callback(
-      callbackToken : Types.StreamingCallbackToken
-    ) : async Types.StreamingCallbackHttpResponse {
-
-      switch (assets.get(callbackToken.key)) {
-        case (null) throw Error.reject("key not found: " # callbackToken.key);
-        case (?asset) {
+      switch (asset) {
+        case (?{ content_type : Text; encoding : Types.AssetEncoding }) {
           return {
-            token = create_token(
-              callbackToken.key,
-              callbackToken.index,
-              asset.encoding,
+            body = encoding.content_chunks[0];
+            headers = [
+              ("Content-Type", content_type),
+              ("accept-ranges", "bytes"),
+              ("cache-control", "private, max-age=0"),
+            ];
+            status_code = 200;
+            streaming_strategy = create_strategy(
+              key,
+              0,
+              { content_type; encoding },
+              encoding,
             );
-            body = asset.encoding.content_chunks[callbackToken.index];
           };
         };
+        case null {};
       };
     };
 
-    private func create_token(
-      key : Text,
-      chunk_index : Nat,
-      encoding : Types.AssetEncoding,
-    ) : ?Types.StreamingCallbackToken {
-      if (chunk_index + 1 >= encoding.content_chunks.size()) {
-        null;
-      } else {
-        ?{
-          key;
-          index = chunk_index + 1;
-          content_encoding = "gzip";
+    return {
+      body = Blob.toArray(Text.encodeUtf8(text));
+      headers = [];
+      status_code = 403;
+      streaming_strategy = null;
+    };
+  };
+
+  public query func getAllAssetKeys() : async Text {
+    var keys = "";
+    for (key in assets.keys()) {
+      keys := key # " " # keys;
+    };
+    keys;
+  };
+
+  public query func splitTest(url : Text, index : Nat) : async Text {
+    let split : Iter.Iter<Text> = Text.split(url, #char '?');
+    Iter.toArray(split)[index];
+  };
+
+  private func create_strategy(
+    key : Text,
+    index : Nat,
+    asset : Types.Asset,
+    encoding : Types.AssetEncoding,
+  ) : ?Types.StreamingStrategy {
+    switch (create_token(key, index, encoding)) {
+      case (null) { null };
+      case (?token) {
+        let self : Principal = Principal.fromActor(Asset_Management);
+        let canisterId : Text = Principal.toText(self);
+        let canister = actor (canisterId) : actor {
+          http_request_streaming_callback : shared () -> async ();
+        }; // create actor reference
+
+        return ?#Callback({
+          token;
+          callback = canister.http_request_streaming_callback;
+
+        });
+      };
+    };
+  };
+
+  public query func http_request_streaming_callback(
+    callbackToken : Types.StreamingCallbackToken
+  ) : async Types.StreamingCallbackHttpResponse {
+
+    switch (assets.get(callbackToken.key)) {
+      case (null) throw Error.reject("key not found: " # callbackToken.key);
+      case (?asset) {
+        return {
+          token = create_token(
+            callbackToken.key,
+            callbackToken.index,
+            asset.encoding,
+          );
+          body = asset.encoding.content_chunks[callbackToken.index];
         };
       };
     };
+  };
+
+  private func create_token(
+    key : Text,
+    chunk_index : Nat,
+    encoding : Types.AssetEncoding,
+  ) : ?Types.StreamingCallbackToken {
+    if (chunk_index + 1 >= encoding.content_chunks.size()) {
+      null;
+    } else {
+      ?{
+        key;
+        index = chunk_index + 1;
+        content_encoding = "gzip";
+      };
+    };
+  };
 
 };
